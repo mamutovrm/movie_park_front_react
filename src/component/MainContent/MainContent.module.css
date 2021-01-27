@@ -1,0 +1,4 @@
+.content {
+    grid-area: my_main_content;
+    border: solid red;
+}

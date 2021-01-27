@@ -1,0 +1,30 @@
+.circle {
+    border: red;
+    background-color: #FFFFFF;
+    height: 10px;
+    -moz-border-radius: 8px;
+    -webkit-border-radius: 8px;
+    width: 10px;
+}
+
+.seat {
+    fill: #96f542;
+    stroke-width: 1.5;
+    stroke: grey;
+}
+
+.seat:hover {
+    r: 3%;
+}
+
+.seat.vip {
+    fill: #42cef5;
+}
+
+.seat.blocked {
+    fill: grey;
+}
+
+.seat.blocked:hover {
+    r: 1.5%;
+}

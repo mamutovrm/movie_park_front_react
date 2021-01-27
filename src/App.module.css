@@ -1,0 +1,14 @@
+.app_wrapper {
+    margin: 0 auto;
+    display: grid;
+    width: 1200px;
+    grid-template-areas:
+          "my_header my_header"
+          "my_main_content my_main_content"
+          "my_footer  my_footer";
+
+    grid-template-rows: 1fr 10fr 1fr;
+    /*grid-template-rows: 60px 60px 1fr 60px;*/
+    /*grid-template-columns: 12fr 88fr;*/
+    grid-gap: 5px;
+}

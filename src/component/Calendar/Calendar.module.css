@@ -1,0 +1,4 @@
+.calendar {
+    grid-area: my_calendar;
+    border: solid grey;
+}

@@ -1,0 +1,8 @@
+.movies_row {
+    margin: 1%;
+    display: grid;
+    width: 100%;
+    grid-template-rows: 100%;
+    grid-template-columns: 32% 32% 32%;
+    grid-gap: 1%;
+}

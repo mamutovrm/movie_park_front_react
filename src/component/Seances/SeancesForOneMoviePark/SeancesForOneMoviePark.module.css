@@ -1,0 +1,18 @@
+.movie_park_text {
+    /*position: relative;*/
+    /*display: inline;*/
+    /*background-color: green;*/
+    /*color: blue;*/
+    font-size: 120%;
+    font-weight: bold;
+}
+
+.seances_row {
+    margin: 1%;
+    display: grid;
+    width: 100%;
+    /*grid-template-rows: 100%;*/
+
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    grid-gap: 1%;
+}
