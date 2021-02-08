@@ -17,7 +17,7 @@ class SeanceSchemaUtils {
             blockPlacesRequestBody.placeIdList.push(placeId);
         })
 
-        log("Finish preparing block places request body.: %s", blockPlacesRequestBody);
+        log("Finish preparing block places request body:", blockPlacesRequestBody);
         return blockPlacesRequestBody;
     }
 

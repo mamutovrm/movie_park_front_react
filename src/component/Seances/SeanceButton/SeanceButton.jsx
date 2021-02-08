@@ -16,8 +16,10 @@ export class SeanceButton extends Component {
 
     goToSeance() {
         let seanceId = this.props.seanceInfo["seanceId"]
-        let hallId = this.props.seanceInfo["hallId"]
-        this.props.history.push(`/seance/seance_id=${seanceId}/hall_id=${hallId}`);
+        this.props.history.push({
+            pathname: `/seance/seance_id=${seanceId}`,
+            state: {seanceInfo: this.props.seanceInfo}
+        });
     }
 
     show_time_hhmm_format(time) {

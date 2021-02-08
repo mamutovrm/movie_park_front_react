@@ -15,13 +15,11 @@ export class SeanceSchema extends Component {
         super(props);
 
         this.selectThePlace = this.selectThePlace.bind(this);
-        this.blockPlaces = this.blockPlaces.bind(this);
+        this.buyTickets = this.buyTickets.bind(this);
 
         this.state = {
-            seanceId: this.props.match.params.seanceId,
-            hallId: this.props.match.params.hallId,
-            basePrice: 150,
-            vipPrice: 250,
+            seanceId: props.match.params.seanceId,
+            seanceInfo: props.location.state.seanceInfo,
             totalPrice: 0,
             selectedPlaceList: new Set(),
             seancePlacesInfoList: Object
@@ -29,9 +27,7 @@ export class SeanceSchema extends Component {
     }
 
     componentDidMount() {
-        let seanceId = this.state.seanceId
-
-        ApiMethodsUtils.getSeancePlacesInfoById(seanceId)
+        ApiMethodsUtils.getSeancePlacesInfoById(this.state.seanceId)
             .then(response => {
                 log("response", response.data)
                 this.setState({seancePlacesInfoList: response.data});
@@ -45,6 +41,9 @@ export class SeanceSchema extends Component {
 
     drawAllSeats() {
         this.totalPrice = 0;
+        let basePrice = this.state.seanceInfo.basePrice;
+        let vipPrice = this.state.seanceInfo.vipPrice;
+        let hallPlacesInfo = window.hallPlacesInfo[this.state.seanceInfo["hallId"]]
         let svgns = "http://www.w3.org/2000/svg";
         let container = document.getElementById('seanceGraphArea');
 
@@ -60,11 +59,9 @@ export class SeanceSchema extends Component {
 
             //create new element
             let circle = document.createElementNS(svgns, 'circle');
-            let placeInfo = window.hallPlacesInfo[this.state.hallId][placeId]
+            let placeInfo = hallPlacesInfo[placeId]
             SeanceSchemaUtils.createCircleByParameters(circle, placeId, blocked,
-                placeInfo,
-                this.state.basePrice,
-                this.state.vipPrice);
+                placeInfo, basePrice, vipPrice);
             container.appendChild(circle);
         })
 
@@ -105,11 +102,12 @@ export class SeanceSchema extends Component {
         }
     }
 
-    blockPlaces() {
+    buyTickets() {
         let blockPlacesRequestBody = SeanceSchemaUtils.prepareBlockUnblockPlacesRequestBody(
             this.state.selectedPlaceList, this.state.seanceId, true)
-        ApiMethodsUtils.blockPlaces(blockPlacesRequestBody).then(() => {
-            this.props.history.push(`/`);
+        this.props.history.push({
+            pathname: `/seance/payment`,
+            state: {blockPlacesRequestBody: blockPlacesRequestBody}
         });
     }
 
@@ -118,7 +116,7 @@ export class SeanceSchema extends Component {
             <div>
                 <div>Seance id: {this.state.seanceId} TOTAL PRICE: {this.state.totalPrice}</div>
                 <div>SELECTED: {SeanceSchemaUtils.selectedPlaceListToString(this.state.selectedPlaceList)}</div>
-                <button type="button" className="btn btn-primary" onClick={this.blockPlaces}>Block places</button>
+                <button type="button" className="btn btn-primary" onClick={this.buyTickets}>Buy tickets</button>
                 <br/>
                 <svg
                     id="seanceGraphArea" height="800" width="800"
