@@ -71,7 +71,6 @@ export class MainContent extends Component<IMainContentProps, IMainContentState>
             return null;
         }
 
-        log(`RENDER MOVIES for ${this.state.activeDate}`)
         return (
             <Movies activeDateStr={this.state.activeDate}/>
         )

@@ -1,5 +1,5 @@
 import React, {Component, MouseEvent} from 'react';
-import ApiMethodsUtils from '../../scripts/api-methods'
+import ApiMethodsUtils, {MovieInfo} from '../../scripts/api-methods'
 import GeneralUtils from "../../scripts/general-utils";
 import css from './movies.module.css'
 import Movie from "./movie/movie";
@@ -13,13 +13,15 @@ interface IMoviesProps {
 }
 
 interface IMoviesState {
-    X: number,
-    Y: number,
-    firstDateStr: string,
-    secondDateStr: string,
-    seanceInfo: Object,
-    movies: Record<string, Record<string, string>>,
-    activeDateMovies: Record<string, string>
+    X: number
+    Y: number
+    firstDateStr: string
+    secondDateStr: string
+    seanceInfo: Object
+    movieByDateMap: Map<string, Map<number, string>>
+    movieIdSet: Set<number>
+    activeDateMovies: Map<number, string>
+    movieInfoDict: Map<number, MovieInfo>
 }
 
 export class Movies extends Component<IMoviesProps, IMoviesState> {
@@ -34,8 +36,10 @@ export class Movies extends Component<IMoviesProps, IMoviesState> {
             firstDateStr: '',
             secondDateStr: '',
             seanceInfo: NaN,
-            movies: {},
-            activeDateMovies: {}
+            movieByDateMap: new Map<string, Map<number, string>>(),
+            movieIdSet: new Set<number>(),
+            activeDateMovies: new Map<number, string>(),
+            movieInfoDict: new Map<number, MovieInfo>()
         }
     }
 
@@ -47,7 +51,7 @@ export class Movies extends Component<IMoviesProps, IMoviesState> {
     }
 
     componentWillMount() {
-        GeneralUtils.stringToDatePromise(this.props.activeDateStr, "YYYY-MM-DD", "-")
+        GeneralUtils.stringToDatePromise(this.props.activeDateStr)
             .then(activeDate => {
                 let secondDate = new Date(activeDate.getTime());
                 secondDate.setDate(secondDate.getDate() + 7)
@@ -58,25 +62,52 @@ export class Movies extends Component<IMoviesProps, IMoviesState> {
                 log("activeDateStr:", this.props.activeDateStr)
             })
             .then(() => {
-                ApiMethodsUtils.getMovieListByPeriod(this.state.firstDateStr, this.state.secondDateStr)
+                return ApiMethodsUtils.getMovieListByPeriod(this.state.firstDateStr, this.state.secondDateStr)
                     .then(response => {
-                        log("response.data:", response)
-                        this.setState({movies: response});
-                        this.setState({activeDateMovies: response[this.props.activeDateStr]});
+                        this.setState({movieByDateMap: response});
+                        this.setState({activeDateMovies:
+                                response.get(this.props.activeDateStr) as Map<number, string>});
                     })
-                    .catch(error => log("ERROR:" + error))
+            })
+            .then(() => {
+                const movieIdSet = new Set<number>()
+                this.state.movieByDateMap.forEach((movieMap, date) => {
+                    log("date", date, "movieMap", movieMap)
+                    Object.keys(movieMap).forEach(movieId => {
+                        movieIdSet.add(parseInt(movieId));
+                    })
+                })
+                this.setState({movieIdSet: movieIdSet})
+                log("movieId set:", movieIdSet)
+                return movieIdSet
+            })
+            .then((movieIdSet) => {
+                log("hello")
+                return ApiMethodsUtils.getAllMoviesByIdSet(movieIdSet)
+            })
+            .then(movieInfoDict => {
+                log("movieInfoDict", movieInfoDict)
+                this.setState({movieInfoDict: movieInfoDict})
             })
     }
 
     componentWillReceiveProps() {
-        this.setState({activeDateMovies: this.state.movies[this.props.activeDateStr]});
+        this.setState({activeDateMovies:
+                this.state.movieByDateMap.get(this.props.activeDateStr) as Map<number, string>});
     }
 
     showOneMovie(index: number, movieIdList: string[]) {
         if (index + 1 <= movieIdList.length) {
-            return (
-                <Movie movieId={parseInt(movieIdList[index])} activeDateStr={this.props.activeDateStr}/>
-            )
+            let movieInfo = this.state.movieInfoDict.get(parseInt(movieIdList[index]))
+            if (movieInfo === undefined) {
+                return (
+                    <h3>Данные ещё не прогрузились</h3>
+                )
+            } else {
+                return (
+                    <Movie movieInfo={movieInfo} activeDateStr={this.props.activeDateStr}/>
+                )
+            }
         }
     }
 
@@ -109,8 +140,6 @@ export class Movies extends Component<IMoviesProps, IMoviesState> {
                 )
             )
         }
-
-        log("empty movies")
     }
 
     render() {

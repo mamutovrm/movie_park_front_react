@@ -31,8 +31,8 @@ class GeneralUtils {
     }
 
     static stringToDatePromise(_dateAsString: string,
-                               _format: string,
-                               _delimiter: string): Promise<Date> {
+                               _format?: string,
+                               _delimiter?: string): Promise<Date> {
         return new Promise((resolve) => {
             resolve(GeneralUtils.stringToDate(_dateAsString, _format, _delimiter))
         })

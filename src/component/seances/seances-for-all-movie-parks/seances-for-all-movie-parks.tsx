@@ -1,8 +1,7 @@
 import React, {Component} from 'react';
 import SeancesForOneMoviePark from "../seances-for-one-movie-park/seances-for-one-movie-park";
-import ApiMethodsUtils, {SeanceInfo} from "../../../scripts/api-methods";
+import ApiMethodsUtils, {MovieInfo, SeanceInfo} from "../../../scripts/api-methods";
 import GeneralUtils from "../../../scripts/general-utils";
-import {moviesPictureDict} from "../../../scripts/constants";
 import {RouteComponentProps} from "react-router-dom";
 
 function log(...args: any[]) {
@@ -16,7 +15,9 @@ interface ISeancesForAllMovieParksProps extends RouteComponentProps<any> {
 interface ISeancesForAllMovieParksState {
     movieId: number;
     activeDate: string;
-    seanceDict: Record<string, SeanceInfo[]>
+    movieInfo: MovieInfo;
+    movieParkNames: string[]
+    seanceDict: Map<string, SeanceInfo[]>
 }
 
 export class SeancesForAllMovieParks extends
@@ -27,7 +28,9 @@ export class SeancesForAllMovieParks extends
         this.state = {
             movieId: props.match.params.movieId,
             activeDate: props.match.params.activeDate,
-            seanceDict: {}
+            movieInfo: props.location.state.movieInfo,
+            movieParkNames: [],
+            seanceDict: new Map<string, SeanceInfo[]>()
         }
     }
 
@@ -36,29 +39,27 @@ export class SeancesForAllMovieParks extends
             .then(response => {
                 log("seanceDict", response)
                 this.setState({seanceDict: response});
+                this.setState({movieParkNames: Array.from(response.keys())});
             })
             .catch(error => log("ERROR:", error))
     }
 
     showHeader() {
         return (
-            <h3>Расписание сеансов "{moviesPictureDict[this.state.movieId].name}"</h3>
+            <h3>Расписание сеансов "{this.state.movieInfo.movieName}"</h3>
         )
     }
 
     showSeancesForOneMoviePark() {
-        log("seanceDict", this.state.seanceDict)
-        let movieParkNames = Object.keys(this.state.seanceDict)
-
-        if (movieParkNames.length > 0) {
+        if (this.state.movieParkNames.length > 0) {
             return (
-                movieParkNames.map(movieParkName => {
+                this.state.movieParkNames.map(movieParkName => {
                         log("movieParkName:", movieParkName)
-                        log("seanceList:", this.state.seanceDict[movieParkName])
+                        log("seanceList:", this.state.seanceDict.get(movieParkName))
                         return (
                             <SeancesForOneMoviePark
                                 movieParkName={movieParkName}
-                                seancesByDateAndMovie={this.state.seanceDict[movieParkName]}
+                                seanceList={this.state.seanceDict.get(movieParkName) as SeanceInfo[]}
                             />
                         )
                     }

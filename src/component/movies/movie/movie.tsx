@@ -2,16 +2,15 @@ import React, {Component} from 'react';
 import {RouteComponentProps, withRouter} from 'react-router-dom'
 import css from "./movie.module.css";
 import GeneralUtils from "../../../scripts/general-utils";
-import {moviesPictureDict} from "../../../scripts/constants";
+import {MovieInfo} from "../../../scripts/api-methods";
 
 function log(...args: any[]) {
     GeneralUtils.log("Movie", ...args)
 }
 
 interface IMovieProps extends RouteComponentProps<any> {
-    movieId: number,
-    activeDateStr: string,
-    history: any
+    movieInfo: MovieInfo
+    activeDateStr: string
 }
 
 interface IMovieState {
@@ -25,30 +24,31 @@ export class Movie extends Component<IMovieProps, IMovieState> {
         this.goToSeances = this.goToSeances.bind(this);
 
         this.state = {
-            imgIndex: this.getRandomImgIndex()
+            imgIndex: this.getRandomIndex()
         }
     }
 
-    getRandomImgIndex() {
+    goToSeances() {
+        this.props.history.push({
+            pathname: `/seances/active_date=${this.props.activeDateStr}/movie_id=${this.props.movieInfo.movieId}`,
+            state: {movieInfo: this.props.movieInfo}
+        });
+    }
+
+    getRandomIndex() {
         return Math.floor(Math.random() *
-            Math.floor(moviesPictureDict[this.props.movieId].imgNames.length)
+            Math.floor(this.props.movieInfo.imgList.length)
         );
     }
 
-    goToSeances() {
-        this.props.history.push(
-            `/seances/active_date=${this.props.activeDateStr}/movie_id=${this.props.movieId}`);
-    }
-
     show_movie() {
-        let moviePictureDict = moviesPictureDict[this.props.movieId]
-        let img_path = moviePictureDict.imgPrefix + moviePictureDict.imgNames[this.state.imgIndex]
         return (
             <div className={css.movie_wrapper}>
                 <button className={css.movie_img_wrapper_button} onClick={this.goToSeances}>
-                    <img className={css.movie_img} src={img_path}/>
+                    <img className={css.movie_img}
+                         src={this.props.movieInfo.imgList[this.state.imgIndex]}/>
                 </button>
-                <div className={css.movie_name_text}>{moviePictureDict.name}</div>
+                <div className={css.movie_name_text}>{this.props.movieInfo.movieName}</div>
             </div>
         )
     }

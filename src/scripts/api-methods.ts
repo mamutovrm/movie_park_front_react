@@ -7,10 +7,11 @@ const getSeancePlacesInfoUrl: string = `${serviceUrl}/seances/places/info`;
 const blockPlaceUrl: string = `${serviceUrl}/seances/places/block`;
 const unblockPlaceUrl: string = `${serviceUrl}/seances/places/unblock`;
 const getSeancesByMovieAndDateUrl: string = `${serviceUrl}/seances/all-by-movie-and-date`;
+const getAllMoviesByIdSetUrl: string = `${serviceUrl}/movies/all-by-id-set`;
 const getAllMoviesByPeriodUrl: string = `${serviceUrl}/movies/all-by-period`;
 
 function log(...args: any[]) {
-    GeneralUtils.log("ApiMethodsUtil:", ...args);
+    GeneralUtils.log("ApiMethodsUtil", ...args);
 }
 
 class SeanceInfo {
@@ -60,8 +61,28 @@ class SeancePlace {
     }
 }
 
+class MovieInfo {
+    movieId: number;
+    movieName: string;
+    imgList: string[];
+
+    static of(movieId: number,
+              movieName: string,
+              imgList: string[]) {
+        return new MovieInfo(movieId, movieName, imgList);
+    }
+
+    constructor(movieId: number,
+                movieName: string,
+                imgList: string[]) {
+        this.movieId = movieId;
+        this.movieName = movieName;
+        this.imgList = imgList;
+    }
+}
+
 const httpClient = axios.create();
-httpClient.defaults.timeout = 500;
+httpClient.defaults.timeout = 5000;
 
 class ApiMethodsUtils {
 
@@ -106,8 +127,7 @@ class ApiMethodsUtils {
         return ApiMethodsUtils.blockUnblockPlaces(unblockPlaceUrl, requestBody)
     }
 
-    private static blockUnblockPlaces(url: string,
-                              requestBody: Object) {
+    private static blockUnblockPlaces(url: string, requestBody: Object) {
         return httpClient.put(url, requestBody, {
             auth: {
                 username: "operator@gmail.com",
@@ -125,39 +145,62 @@ class ApiMethodsUtils {
     }
 
     public static getAllSeancesByMovieAndDate(movieId: number, dateAsString: string):
-        Promise<Record<string, SeanceInfo[]>> {
+        Promise<Map<string, SeanceInfo[]>> {
         log('Start getting all seances by movie and date.');
         let myUrl = `${getSeancesByMovieAndDateUrl}?movieId=${movieId}&date=${dateAsString}`;
 
         return httpClient.get(myUrl)
             .then(response => {
-                log("All seances in all movie parks:", response);
-                let result: Record<string, SeanceInfo[]> = {}
+                log("All seances by movie and date:", response.data);
+                let result: Map<string, SeanceInfo[]> = new Map<string, SeanceInfo[]>();
                 Object.keys(response.data).forEach((cinemaPark: string) => {
                     let seanceList: SeanceInfo[] = []
                     response.data[cinemaPark].forEach((seanceInfo: SeanceInfo) => {
                         seanceList.push(seanceInfo)
                     })
-                    result[cinemaPark] = seanceList
+                    result.set(cinemaPark, seanceList);
                 })
                 return result;
             })
             .catch(error => error)
     }
 
-    public static getMovieListByPeriod(startPeriodDateStr: string,
-                                endPeriodDateStr: string):
-        Promise<Record<string, Record<string, string>>> {
-        log(`getTodayMovieList by period ${startPeriodDateStr}-${endPeriodDateStr}`);
+    public static getAllMoviesByIdSet(idSet: Set<number>): Promise<Map<number, MovieInfo>> {
+        log("getAllMoviesByIdSet", idSet);
+        const myUrl = `${getAllMoviesByIdSetUrl}`;
+
+        let idList: number[] = []
+        idSet.forEach(id => idList.push(id))
+        const requestBody = {"movieIdSet" : idList}
+        log("requestBody", requestBody)
+
+        return httpClient.post(myUrl, requestBody)
+            .then(response => {
+                log("All movies by id set response.data:", response.data);
+                let result: Map<number, MovieInfo> = new Map<number, MovieInfo>();
+                Object.keys(response.data).forEach((movieId: string) => {
+                    let movieName: string = response.data[movieId].movieName
+                    let imgList: string[] = response.data[movieId]["base64Images"].split("|")
+                    result.set(parseInt(movieId), new MovieInfo(parseInt(movieId), movieName, imgList))
+                })
+                log("All movies by id set result:", result);
+                return result;
+            })
+            .catch(error => error)
+    }
+
+    public static getMovieListByPeriod(startPeriodDateStr: string, endPeriodDateStr: string):
+        Promise<Map<string, Map<number, string>>> {
+        log(`getMovieListByPeriod by period ${startPeriodDateStr}-${endPeriodDateStr}`);
         let myUrl = `${getAllMoviesByPeriodUrl}?periodStart=${startPeriodDateStr}&periodEnd=${endPeriodDateStr}`;
 
         return httpClient.get(myUrl)
             .then(response => {
                 log("Finish getting today movies list:", response.data);
-                let result: Record<string, Record<string, string>> = {}
+                let result: Map<string, Map<number, string>> =
+                    new Map<string, Map<number, string>>();
                 Object.keys(response.data).forEach((date: string) => {
-                    result[date] = response.data[date] as Record<string, string>;
-                    log("date", date, "result[date]", result[date])
+                    result.set(date, response.data[date] as Map<number, string>);
                 })
                 return result;
             })
@@ -169,5 +212,6 @@ class ApiMethodsUtils {
 export default ApiMethodsUtils
 export {
     SeanceInfo,
-    SeancePlace
+    SeancePlace,
+    MovieInfo
 }
