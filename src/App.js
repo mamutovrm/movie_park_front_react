@@ -2,17 +2,16 @@ import React from 'react';
 import './App.module.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import css from './App.module.css';
-import constants from "./scripts/constants";
 
-import MyHeader from "./component/Header/MyHeader"
-import MyFooter from "./component/Footer/MyFooter";
-import MainContent from "./component/MainContent/MainContent";
+import MyHeader from "./component/my-header/my-header"
+import MyFooter from "./component/my-footer/my-footer";
+import MainContent from "./component/main-content/main-content";
 import {BrowserRouter, Route, Switch, Redirect} from 'react-router-dom'
-import SeancesForAllMovieParks from "./component/Seances/SeancesForAllMovieParks/SeancesForAllMovieParks";
-import {SeanceSchema} from "./component/Seances/SeanceSchema/SeanceSchema";
-import GeneralUtils from "./scripts/GeneralUtils";
-import Payment from "./component/Seances/Payment/Payment";
-import PaymentSuccess from "./component/Seances/Payment/PaymentSuccess";
+import SeancesForAllMovieParks from "./component/seances/seances-for-all-movie-parks/seances-for-all-movie-parks";
+import {SeanceSchema} from "./component/seances/seance-schema/seance-schema";
+import GeneralUtils from "./scripts/general-utils";
+import Payment from "./component/seances/payment/payment";
+import PaymentSuccess from "./component/seances/payment/payment-success";
 
 function App() {
     return (
