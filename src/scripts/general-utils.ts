@@ -15,7 +15,7 @@ class GeneralUtils {
         console.error(`${_classname}: `, ...args);
     }
 
-    static dateToStringPromise(_date: Date, _format: string) {
+    static dateToStringPromise(_date: Date, _format: string = DEFAULT_FORMAT): Promise<string> {
         return new Promise((resolve) => {
             resolve(GeneralUtils.dateToString(_date, _format))
         })

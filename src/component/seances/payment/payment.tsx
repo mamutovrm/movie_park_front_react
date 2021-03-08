@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import GeneralUtils from "../../../scripts/general-utils";
-import ApiMethodsUtils from "../../../scripts/api-methods";
+import {blockPlaces} from "../../../scripts/api-methods";
 import {RouteComponentProps, withRouter} from "react-router-dom";
 
 function log(...args: any[]) {
@@ -18,14 +18,13 @@ export class Payment extends Component<IPaymentProps> {
         this.payAndBlockPlaces = this.payAndBlockPlaces.bind(this);
     }
 
-    payAndBlockPlaces() {
+    async payAndBlockPlaces() {
         log("payment processed");
         let requestBody = this.props.location.state.blockPlacesRequestBody
         log("Blocking places", requestBody);
-        ApiMethodsUtils.blockPlaces(requestBody).then(() => {
-            this.props.history.push(`/seance/payment/success`);
-        });
-    };
+        await blockPlaces(requestBody)
+        this.props.history.push(`/seance/payment/success`);
+    }
 
     render() {
         return (

@@ -1,5 +1,5 @@
 import React, {Component, MouseEvent} from 'react';
-import ApiMethodsUtils, {MovieInfo} from '../../scripts/api-methods'
+import {MovieInfo, getMovieListByPeriod, getAllMoviesByIdSet} from '../../scripts/api-methods'
 import GeneralUtils from "../../scripts/general-utils";
 import css from './movies.module.css'
 import Movie from "./movie/movie";
@@ -50,45 +50,35 @@ export class Movies extends Component<IMoviesProps, IMoviesState> {
         });
     }
 
-    componentWillMount() {
-        GeneralUtils.stringToDatePromise(this.props.activeDateStr)
-            .then(activeDate => {
-                let secondDate = new Date(activeDate.getTime());
-                secondDate.setDate(secondDate.getDate() + 7)
-                this.setState({firstDateStr: this.props.activeDateStr});
-                this.setState({secondDateStr: GeneralUtils.dateToString(secondDate)});
-                log("firstDateStr:", this.state.firstDateStr)
-                log("secondDateStr:", this.state.secondDateStr)
-                log("activeDateStr:", this.props.activeDateStr)
+    async componentWillMount() {
+        this.setState({firstDateStr: this.props.activeDateStr});
+        const activeDate = GeneralUtils.stringToDate(this.props.activeDateStr)
+        let secondDate = new Date(activeDate.getTime());
+        secondDate.setDate(secondDate.getDate() + 7)
+        this.setState({secondDateStr: await GeneralUtils.dateToStringPromise(secondDate)});
+        log(`firstDateStr: ${this.state.firstDateStr} secondDateStr ${this.state.secondDateStr} activeDateStr ${this.props.activeDateStr}`)
+
+        const movieByDateMap: Map<string, Map<number, string>> =
+            await getMovieListByPeriod(this.state.firstDateStr, this.state.secondDateStr)
+        this.setState({movieByDateMap: movieByDateMap});
+        this.setState({
+            activeDateMovies: movieByDateMap.get(this.props.activeDateStr) as Map<number, string>
+        })
+
+        const movieIdSet = new Set<number>()
+        this.state.movieByDateMap.forEach((movieMap, date) => {
+            log("date", date, "movieMap", movieMap)
+            Object.keys(movieMap).forEach(movieId => {
+                movieIdSet.add(parseInt(movieId));
             })
-            .then(() => {
-                return ApiMethodsUtils.getMovieListByPeriod(this.state.firstDateStr, this.state.secondDateStr)
-                    .then(response => {
-                        this.setState({movieByDateMap: response});
-                        this.setState({activeDateMovies:
-                                response.get(this.props.activeDateStr) as Map<number, string>});
-                    })
-            })
-            .then(() => {
-                const movieIdSet = new Set<number>()
-                this.state.movieByDateMap.forEach((movieMap, date) => {
-                    log("date", date, "movieMap", movieMap)
-                    Object.keys(movieMap).forEach(movieId => {
-                        movieIdSet.add(parseInt(movieId));
-                    })
-                })
-                this.setState({movieIdSet: movieIdSet})
-                log("movieId set:", movieIdSet)
-                return movieIdSet
-            })
-            .then((movieIdSet) => {
-                log("hello")
-                return ApiMethodsUtils.getAllMoviesByIdSet(movieIdSet)
-            })
-            .then(movieInfoDict => {
-                log("movieInfoDict", movieInfoDict)
-                this.setState({movieInfoDict: movieInfoDict})
-            })
+        })
+
+        this.setState({movieIdSet: movieIdSet})
+        log("movieId set:", movieIdSet)
+
+        const movieInfoDict = await getAllMoviesByIdSet(movieIdSet)
+        log("movieInfoDict", movieInfoDict)
+        this.setState({movieInfoDict: movieInfoDict})
     }
 
     componentWillReceiveProps() {

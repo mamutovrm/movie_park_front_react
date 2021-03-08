@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import SeancesForOneMoviePark from "../seances-for-one-movie-park/seances-for-one-movie-park";
-import ApiMethodsUtils, {MovieInfo, SeanceInfo} from "../../../scripts/api-methods";
+import {MovieInfo, SeanceInfo, getAllSeancesByMovieAndDate} from "../../../scripts/api-methods";
 import GeneralUtils from "../../../scripts/general-utils";
 import {RouteComponentProps} from "react-router-dom";
 
@@ -34,14 +34,11 @@ export class SeancesForAllMovieParks extends
         }
     }
 
-    componentWillMount() {
-        ApiMethodsUtils.getAllSeancesByMovieAndDate(this.state.movieId, this.state.activeDate)
-            .then(response => {
-                log("seanceDict", response)
-                this.setState({seanceDict: response});
-                this.setState({movieParkNames: Array.from(response.keys())});
-            })
-            .catch(error => log("ERROR:", error))
+    async componentWillMount() {
+        const seanceDict: Map<string, SeanceInfo[]> = await getAllSeancesByMovieAndDate(this.state.movieId, this.state.activeDate)
+        log("seanceDict", seanceDict)
+        this.setState({seanceDict: seanceDict});
+        this.setState({movieParkNames: Array.from(seanceDict.keys())});
     }
 
     showHeader() {

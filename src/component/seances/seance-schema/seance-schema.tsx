@@ -3,7 +3,7 @@ import {RouteComponentProps, withRouter} from 'react-router-dom'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import css from './seance-schema.module.css';
 import SeanceSchemaUtils from "./seance-schema-utils";
-import ApiMethodsUtils, {SeanceInfo, SeancePlace} from "../../../scripts/api-methods";
+import {SeanceInfo, SeancePlace, getSeancePlacesInfoById} from "../../../scripts/api-methods";
 import GeneralUtils from "../../../scripts/general-utils";
 import {hallsPlacesInfo} from "../../../scripts/constants";
 
@@ -39,16 +39,10 @@ export class SeanceSchema extends Component<ISeanceSchemaProps, ISeanceSchemaSta
         }
     }
 
-    componentWillMount() {
-        ApiMethodsUtils.getSeancePlacesInfoById(this.state.seanceId)
-            .then(response => {
-                log("seancePlacesInfoList", response)
-                this.setState({seancePlacesInfoList: response});
-            })
-            .catch(error => log("ERROR:", error))
-            .then(() => {
-                this.drawAllSeats();
-            })
+    async componentWillMount() {
+        let seancePlacesInfoList = await getSeancePlacesInfoById(this.state.seanceId)
+        this.setState({seancePlacesInfoList: seancePlacesInfoList});
+        this.drawAllSeats();
     }
 
     drawAllSeats() {

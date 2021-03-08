@@ -13,7 +13,7 @@ class SeanceSchemaUtils {
         log('Start preparing block places request body.');
 
         let blockPlacesRequestBody = {
-            "seanceId": seanceId as number,
+            "seanceId": seanceId,
             "placeIdList" : [] as number[]
         };
 
